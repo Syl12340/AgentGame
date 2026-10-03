@@ -348,7 +348,10 @@ foreach (var (name, run) in tests)
 }
 Console.WriteLine($"Core: {tests.Length - failed}/{tests.Length} passed.");
 int m7Failed = await M7MultiSeatChecks.RunAsync(Root());
-return failed == 0 && m7Failed == 0 ? 0 : 1;
+int m7GenFailed = await M7MultiGenerationChecks.RunAsync(Root());
+int m7EdgeFailed = await M7MultiSeatEdgeChecks.RunAsync(Root());
+int m7StreamFailed = await M7StreamEquivalenceChecks.RunAsync(Root());
+return failed == 0 && m7Failed == 0 && m7GenFailed == 0 && m7EdgeFailed == 0 && m7StreamFailed == 0 ? 0 : 1;
 
 static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
 static void Equal<T>(T expected, T actual)

@@ -116,3 +116,18 @@ M6 现状见 [milestones/m6.md](milestones/m6.md)：225 项检查通过（Core 3
 另：本轮把一个**越权产物** `docs/agy-subagent-standalone-research.md`（某子代理未经任务授权写入 docs/，内容是关于 AGY 独立闭环的研究草稿）移出到 `artifacts/agy-diagnostics/standalone-research-draft.md`。docs/ 下的文档保持"已审阅"状态，未审阅草稿不放行。
 
 累计：**251 项检查通过**（Core 50、Protocol 44、Runtime 138、Cli 6、Architecture 13）。
+
+## M7.1b / M7.2a（2026-10-04，全部委派为代码任务）
+
+按用户要求，本轮所有子代理都只领**写代码**的任务（不再派只读盘点/报告类任务）：
+
+| 执行方 | 独占产物 | 主代理复核与修错 |
+|---|---|---|
+| ecnu-max | `MultiScenarioGenerator.cs`、`MultiSolver.cs`、`MultiScenarioValidator.cs`、`M7MultiGenerationChecks.cs` + Core.Tests 注册 | 复核后确认可用；其自报的诚实发现（双席全状态搜索随地图膨胀，多人生成默认棋盘降为 15×9）已写入验收记录的限制 |
+| AGY / Gemini **Flash High** | `tests/AgentGame.Core.Tests/M7MultiSeatEdgeChecks.cs`（8 项边界检查） | 我修掉 1 处可空解引用编译错误；随后 1 项失败经定位是**检查脚本自身**让席位穿过关闭的门取卡（并非产品缺陷），改为走开放行并补全"非携带者站出口不结束"断言；现 8/8 |
+| ecnu-max | `MultiRandomStreams.cs`（公共派生帮助类）+ `M7StreamEquivalenceChecks.cs`（2 项，5 种子 × 3 流 × 16 输出与冻结 v1 API 逐输出比对） | 我发现的重复派生风险（生成器复制了冻结 v1 的公式）由此被钉死；生成器改用公共帮助类 |
+| ecnu-max | `src/AgentGame.Protocol/Multiplayer/*`（协议 v2 五类文件）+ `M7ProtocolV2Checks.cs`（14 项） | 复核：v1 编解码/夹具零改动，Protocol 合计 58 项全过；其报告的"另一代理文件的可空错误"由我修复 |
+
+另：AGY 本轮又**越权**在 `docs/` 写了一份未审阅草稿（bridge 并行笔记），已移出到 `artifacts/agy-diagnostics/bridge-parallel-draft.md`；`docs/` 只保留已审阅文档。
+
+累计：**280 项检查通过**（Core 65、Protocol 58、Runtime 138、Cli 6、Architecture 13）。

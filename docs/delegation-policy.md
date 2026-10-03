@@ -13,7 +13,7 @@
 |---|---|---|---|
 | ecnu-max（校内免费额度） | `workflow` 脚本中 `agent(prompt, { provider: 'chatecnu', model: 'ecnu-max' })` | 只读审查、文档核对、可自验证的小改动 | 需确认其 shell 能力（见下） |
 | AGY / Gemini Pro High | `node artifacts/agy-diagnostics/dispatch-task.mjs --task-file <文件> --model pro` | 需要撰写文件、无法运行命令的任务 | 沙箱禁用终端命令，**不能自验证** |
-| AGY / Gemini Flash High | 同上 `--model cheap` | 量大、判断简单（格式转换、样板、文档） | 同上 |
+| AGY / Gemini Flash High | 同上 `--model cheap` | 清单/盘点、"读出并总结"、文档与记账类机械修改、样板代码 | 同上 |
 | ~~内置 `subagent`~~ | — | **禁止**：计费在 ds 账号上，违背额度经济性 | — |
 
 任务书一律写成文件（`artifacts/agy-diagnostics/task-*.md`），再用脚本投递，避免命令行转义问题。

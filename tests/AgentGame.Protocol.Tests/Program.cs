@@ -330,6 +330,7 @@ foreach (var (name, run) in tests)
 }
 Console.WriteLine($"Protocol: {tests.Length - failed}/{tests.Length} passed.");
 failed += M4CodecChecks.Run(Root());
+failed += M7ProtocolV2Checks.Run(Root());
 return failed == 0 ? 0 : 1;
 
 static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }

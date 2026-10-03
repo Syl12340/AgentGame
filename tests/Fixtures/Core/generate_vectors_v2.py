@@ -111,7 +111,7 @@ result = {
     "success_hex": success.hex(),
     "success_sha256": sha(success),
 }
-(folder / "core-golden-v2.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+(folder / "core-golden-v2.json").write_bytes((json.dumps(result, indent=2) + "\n").encode("utf-8"))
 print(json.dumps({"bytes": len(initial), "carrier_bytes": len(carrier),
                   "success_bytes": len(success),
                   "initial_sha256": result["initial_sha256"],

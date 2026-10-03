@@ -43,6 +43,6 @@ first_move = canonical(tick=1, position={"x": 2, "y": 1}, key=0, door=0, core=0,
 result = {"encoding": "core-state/1", "source": "generate_vectors.py (independent Python struct encoding)",
           "first_move_sha256": hashlib.sha256(first_move).hexdigest(), "initial_hex": initial.hex(), "initial_sha256": hashlib.sha256(initial).hexdigest(),
           "success_hex": success.hex(), "success_sha256": hashlib.sha256(success).hexdigest()}
-(folder / "core-golden.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+(folder / "core-golden.json").write_bytes((json.dumps(result, indent=2) + "\n").encode("utf-8"))
 print(json.dumps({"bytes": len(initial), "initial_sha256": result["initial_sha256"],
                   "success_sha256": result["success_sha256"]}))

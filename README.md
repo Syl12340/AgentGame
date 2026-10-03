@@ -55,6 +55,7 @@ dotnet run --project src/AgentGame.Cli -c Release -- verify artifacts/run.jsonl
 - [项目实施计划](docs/project-plan.md) 与 [任务清单](docs/backlog.md)
 - [并行分工与实际结果](docs/parallel-work.md)、[AGY 子代理排查与修复](docs/agy-diagnostics.md)
 - 验收记录：[M0–M1](docs/milestones/m0-m1.md)、[M2](docs/milestones/m2.md)、[M3](docs/milestones/m3.md)、[M4](docs/milestones/m4.md)、[M5](docs/milestones/m5.md)、[M6（部分）](docs/milestones/m6.md)
+- [多玩家需求研究](docs/multiplayer-requirements.md)（新阶段提案，尚未实现：席位模型、行动顺序、信息隔离与验收计划）
 - 协作方式：[委派政策](docs/delegation-policy.md)（谁做什么、走哪条廉价通道、谁负责验证）
 - 运行时说明：[会话、错误与运行摘要](docs/runtime-execution.md)、[Observer/记录/回放](docs/observer-runtime.md)、[终端视图](docs/terminal.md)
 - 规则与格式：[Core 规则](docs/core-rules.md)、[规范状态编码](docs/core-state-format.md)、[随机流](docs/randomness.md)、[生成/求解](docs/generation.md)

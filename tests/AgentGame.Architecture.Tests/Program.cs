@@ -13,6 +13,7 @@ var projects = new (string Path, string[] References)[]
     ("tests/AgentGame.Core.Tests/AgentGame.Core.Tests.csproj", ["AgentGame.Core"]),
     ("tests/AgentGame.Protocol.Tests/AgentGame.Protocol.Tests.csproj", ["AgentGame.Protocol"]),
     ("tests/AgentGame.Runtime.Tests/AgentGame.Runtime.Tests.csproj", ["AgentGame.Runtime", "AgentGame.Protocol"]),
+    ("tests/AgentGame.Cli.Tests/AgentGame.Cli.Tests.csproj", ["AgentGame.Cli"]),
     ("tests/AgentGame.Architecture.Tests/AgentGame.Architecture.Tests.csproj", [])
 };
 foreach (var (path, expected) in projects)

@@ -158,7 +158,7 @@ M3 先用协议 fixtures 和内部运行入口验证进程与规则闭环，不�
 
 ## 9. 首版命令面与退出约定
 
-命令面实现状态：M2–M4 已实现 `scenario generate|validate`、`run`、`replay`、`verify`；M5 已实现 `run --tui`（实时终端地图、暂停/单步/倍率）与 `play`（人工模式，可记录并离线核验）。`replay --speed/--pace` 的回放播放控制、以及 `replay` 的终端画面尚未接线。
+命令面实现状态：`scenario generate|validate`、`run`（`--headless` / `--observer-stdout` / `--tui`）、`play`、`replay`（JSONL 导出或 `--tui [--speed N]` 终端回放）、`verify` 均已实现并纳入验收；尚未实现的是网页旁观（v0.1.1）与环境控制协议（v0.2）。
 
 ```text
 agent-game scenario generate --seed 114514 --out facility.json
@@ -168,8 +168,8 @@ agent-game run --scenario facility.json --headless --record run.jsonl -- python3
 agent-game run --scenario facility.json --observer-stdout --record run.jsonl -- python3 -u agents/random_agent.py
 agent-game run --scenario facility.json --tui -- python3 -u agents/explorer_agent.py
 agent-game play --scenario facility.json --record human.jsonl
-agent-game replay run.jsonl --speed 2                              （回放播放控制尚未接线）
 agent-game replay run.jsonl
+agent-game replay run.jsonl --tui --speed 2
 agent-game verify run.jsonl
 ```
 

@@ -7,7 +7,7 @@ try {
         dotnet build AgentGame.slnx -c Release
         if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
     }
-    foreach ($project in @('Core','Protocol','Runtime','Architecture')) {
+    foreach ($project in @('Core','Protocol','Runtime','Cli','Architecture')) {
         dotnet run --project "tests/AgentGame.$project.Tests" -c Release --no-build
         if ($LASTEXITCODE -ne 0) { throw "$project contract checks failed." }
     }

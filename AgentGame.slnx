@@ -6,5 +6,6 @@
   <Project Path="tests/AgentGame.Core.Tests/AgentGame.Core.Tests.csproj" />
   <Project Path="tests/AgentGame.Protocol.Tests/AgentGame.Protocol.Tests.csproj" />
   <Project Path="tests/AgentGame.Runtime.Tests/AgentGame.Runtime.Tests.csproj" />
+  <Project Path="tests/AgentGame.Cli.Tests/AgentGame.Cli.Tests.csproj" />
   <Project Path="tests/AgentGame.Architecture.Tests/AgentGame.Architecture.Tests.csproj" />
 </Solution>

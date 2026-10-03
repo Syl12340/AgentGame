@@ -94,3 +94,13 @@ M5 验收结论见 [milestones/m5.md](milestones/m5.md)：四个验收程序 **2
 能力探测（本轮）：**ecnu-max 子代理具备 shell**（实测 `dotnet --version` → `10.0.401`），因此可自验证的任务优先派给它；AGY 的终端命令仍被沙箱拒绝，只能写文件。两类的产物主代理都必须独立复现一次才算验收。
 
 M6 现状见 [milestones/m6.md](milestones/m6.md)：225 项检查通过（Core 39、Protocol 44、Runtime 130、Architecture 12）；Linux、分层性能基准、队列增长上界、发布包与 pwsh 7 脚本重跑仍未完成。
+
+## M5/M6 收尾（2026-10-04，高级审查模式）
+
+| 执行方 | 独占产物 | 主代理复核结果 |
+|---|---|---|
+| ecnu-max | `tests/AgentGame.Cli.Tests/`（新项目）+ `src/AgentGame.Cli/AssemblyInfo.cs`、`AgentGame.slnx`、`tests/AgentGame.Architecture.Tests/Program.cs`、`scripts/verify.ps1` | 自报 6/6 与 Architecture 13/13；主代理重新构建并运行 → `M5 Terminal: 6/6`、`Architecture: 13/13`；核对其对 resync 帧的断言适配与 `docs/terminal.md` 描述一致 |
+| ecnu-max | `tests/AgentGame.Runtime.Tests/M6ResourceChecks.cs`、`artifacts/m6-perf/report.json` | 自报 4/4；主代理注册、构建、运行 → 4/4，但**发现度量缺陷**：亚毫秒计时被四舍五入成 0，基准不可用。已修为"秒（6 位小数）+ 微秒"并改掉 `*_total` 误导字段名，重跑得到真实数值（200 步 52 µs、1000 哈希 431 µs、verify 3 ms、整局 CLI 0.693 s） |
+| 主代理 | `src/AgentGame.Cli/ReplayPlayer.cs`（新）、`Program.cs` 的 `replay` 参数解析、`tests/AgentGame.Runtime.Tests/M6ReplayCliChecks.cs` | 完成 T503 剩余部分：`replay <jsonl> [--tui] [--speed N]`；4 项新增检查覆盖导出、`--tui` 重定向拒绝、`--speed` 依赖与取值、未知选项；`--speed` 无 `--tui` 时明确报错 |
+
+累计：**240 项检查通过**（Core 39、Protocol 44、Runtime 138、Cli 6、Architecture 13）。本轮仍未使用内置 `subagent`（额度经济性），全部委派经 ecnu-max；AGY 本轮未使用（无"只写文件"型任务）。

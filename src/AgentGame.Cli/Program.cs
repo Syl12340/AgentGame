@@ -15,7 +15,7 @@ if (args.Length == 0 || (args.Length == 1 && args[0] is "--help" or "-h" or "hel
     Console.WriteLine("Generation never overwrites an existing file. Summaries are JSON; errors go to stderr.");
     Console.WriteLine("  run --scenario <file> [--headless] [--tui] [--record <new-jsonl>] [--observer-stdout] [--handshake-ms 5000] [--decision-ms 30000] -- <executable> [arguments...]");
     Console.WriteLine("  play --scenario <file> [--record <new-jsonl>] [--plain]   Play it yourself; keys: arrows/WASD move, e+dir or Shift+dir interact, space pickup, . wait, q quit.");
-    Console.WriteLine("  replay <jsonl>     Export the recorded Observer stream to stdout; summary goes to stderr.");
+    Console.WriteLine("  replay <jsonl> [--tui] [--speed 1.0]   Export the recorded Observer stream as JSONL, or replay it in the terminal with pause/step/speed controls.");
     Console.WriteLine("  verify <jsonl>     Check committed actions, hashes and patches against the saved scenario.");
     Console.WriteLine("Run prints one JSON summary; --observer-stdout streams Observer JSONL and sends its summary to stderr.");
     Console.WriteLine("--headless attaches no terminal observer; --tui renders the live map and accepts space/./-/+/q. They are mutually exclusive, and --tui needs an interactive terminal.");
@@ -159,29 +159,70 @@ if (args[0] == "run")
     catch (Exception error) when (error is IOException or UnauthorizedAccessException or ProtocolException or TimeoutException)
     { Console.Error.WriteLine(JsonSerializer.Serialize(new { error = error.Message })); return 1; }
 }
-if (args[0] is "replay" or "verify")
+if (args[0] == "replay")
 {
-    if (args.Length != 2) { Console.Error.WriteLine($"Usage: agent-game {args[0]} <jsonl>"); return 2; }
     try
     {
-        using Stream output = Console.OpenStandardOutput();
-        if (args[0] == "verify")
+        string? record = null; bool tui = false; double speed = 1.0;
+        for (int i = 1; i < args.Length; i++)
         {
-            VerificationResult result = ReplayService.Verify(args[1]);
-            await ConsoleObserverSink.WriteLineAsync(output, ProtocolJson.EncodeLine(result), TimeSpan.FromSeconds(1));
-            return result.Valid ? 0 : 1;
+            switch (args[i])
+            {
+                case "--tui": tui = true; break;
+                case "--speed":
+                    if (i + 1 >= args.Length ||
+                        !double.TryParse(args[++i], NumberStyles.Float, CultureInfo.InvariantCulture, out speed) ||
+                        speed is < 0.25 or > 16.0)
+                        throw new ArgumentException("--speed must be a number between 0.25 and 16.");
+                    break;
+                default:
+                    if (args[i].StartsWith("--", StringComparison.Ordinal))
+                        throw new ArgumentException($"Unknown replay option '{args[i]}'.");
+                    if (record is not null) throw new ArgumentException("replay takes exactly one record file.");
+                    record = args[i];
+                    break;
+            }
         }
-        using var reader = new ReplayReader(args[1]);
-        await ConsoleObserverSink.WriteLineAsync(output, ObserverCodec.Encode(reader.Header.InitialSnapshot), TimeSpan.FromSeconds(1));
-        while (reader.ReadNext() is { } record)
+        if (record is null) throw new ArgumentException("Usage: agent-game replay <jsonl> [--tui] [--speed 1.0]");
+        if (!tui && speed != 1.0) throw new ArgumentException("--speed requires --tui.");
+        if (tui)
         {
-            object? envelope = record switch { ReplayStatusRecord status => status.ObserverStatus,
+            if (Console.IsOutputRedirected)
+                throw new ArgumentException("--tui requires an interactive terminal; omit it to export the recorded envelopes as JSONL.");
+            using var cancellation = new CancellationTokenSource();
+            ConsoleCancelEventHandler replayer = (_, eventArgs) => { eventArgs.Cancel = true; cancellation.Cancel(); };
+            Console.CancelKeyPress += replayer;
+            try { return await ReplayPlayer.PlayAsync(record, speed, cancellation.Token); }
+            finally { Console.CancelKeyPress -= replayer; }
+        }
+        using Stream output = Console.OpenStandardOutput();
+        using var reader = new ReplayReader(record);
+        await ConsoleObserverSink.WriteLineAsync(output, ObserverCodec.Encode(reader.Header.InitialSnapshot), TimeSpan.FromSeconds(1));
+        while (reader.ReadNext() is { } item)
+        {
+            object? envelope = item switch { ReplayStatusRecord status => status.ObserverStatus,
                 ReplayStepRecord step => step.ObserverBatch, _ => null };
             if (envelope is not null)
                 await ConsoleObserverSink.WriteLineAsync(output, ObserverCodec.Encode(envelope), TimeSpan.FromSeconds(1));
         }
         Console.Error.WriteLine(ProtocolJson.EncodeLine(new ReplaySummary(reader.Status, reader.LastTick, reader.LastSeq, reader.LineNumber)));
         return reader.Status == "incomplete" ? 1 : 0;
+    }
+    catch (ArgumentException error) { Console.Error.WriteLine(error.Message); return 2; }
+    catch (ReplayFormatException error)
+    { Console.Error.WriteLine(JsonSerializer.Serialize(new { error = error.Code, line = error.LineNumber })); return 1; }
+    catch (Exception error) when (error is IOException or UnauthorizedAccessException or ProtocolException or TimeoutException)
+    { Console.Error.WriteLine(JsonSerializer.Serialize(new { error = error.Message })); return 1; }
+}
+if (args[0] == "verify")
+{
+    if (args.Length != 2) { Console.Error.WriteLine("Usage: agent-game verify <jsonl>"); return 2; }
+    try
+    {
+        using Stream output = Console.OpenStandardOutput();
+        VerificationResult result = ReplayService.Verify(args[1]);
+        await ConsoleObserverSink.WriteLineAsync(output, ProtocolJson.EncodeLine(result), TimeSpan.FromSeconds(1));
+        return result.Valid ? 0 : 1;
     }
     catch (ReplayFormatException error)
     { Console.Error.WriteLine(JsonSerializer.Serialize(new { error = error.Code, line = error.LineNumber })); return 1; }

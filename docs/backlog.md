@@ -58,7 +58,7 @@
 
 - [x] T501 — Spectre.Console 地图/状态/事件面板与 ASCII 格子。验收：Terminal 只消费 Observer DTO；未知/已见/当前可见区分；小终端退化可用。**实现偏离**：为保持零第三方依赖改用 ANSI + 自绘格子（`TerminalView.cs`），未引入 Spectre。Console；已见/当前可见用字形+暗色区分，96 种尺寸无越界（隔离检查 106 项），但真实终端观感未肉眼确认。
 - [x] T502 — waiting/耗时显示与动画独立刷新。验收：不同刷新率不改固定动作哈希；elapsed 不进入 Core；慢读后跳过旧动画。`--tui` 用 `ReplayControls` 提供暂停/单步/倍率（0.25–16x）；慢订阅走 `resync_required` 而非应用错误状态。
-- [ ] T503 — 人工 `play` 与回放暂停/单步/倍率。**部分完成**：`play` 已实现并验证（人工 13 回合记录可 `verify`）；`replay` 的 `--speed`/`--pace` 与终端画面尚未接线。
+- [x] T503 — 人工 `play` 与回放暂停/单步/倍率。验收：相同 Action 入口；human.jsonl 可离线播放并 verify。已实现：`play`（人工 13 回合记录可 `verify`）+ `replay <jsonl> --tui [--speed N]`（TerminalView 渲染 + `ReplayControls` 暂停/单步/倍率，重定向时按用法错误拒绝），并由 `M6ReplayCliChecks`（4 项）与 `M5CliChecks`（5 项）覆盖；终端观感仍未肉眼确认。
 - [x] T504 — `agents/explorer_agent.py` 维护地图与返程规划。验收：只使用局部输入，在明确固定样例成功；不读取场景文件/seed/Oracle 路径。手工样例 13 回合最优（哈希等于 Core golden），固定种子集 9/9 通过（M5 Explorer 检查），空工作目录隔离运行也通过。
 
 阶段门槛：完整演示可从生成一路走到回放与核验；人工、Random、Explorer 同规则。
@@ -67,7 +67,7 @@
 
 - [ ] T601 — Windows/Linux 构建与固定动作 golden 核验。验收：逐步 Core 哈希与事件一致，执行命令与环境留档。**部分完成**：Windows 侧已由 `M6GoldenChecks`（4 项）覆盖（冻结向量、跨进程确定性、verify 只读确定、观察者不变性）；Linux 对照未做（本机无 Linux 环境）。
 - [ ] T602 — 超时/取消的进程树清理和标准流黑盒测试。验收：包含派生子进程案例，无残留；若需平台补丁则先修复再发布。**Windows 部分完成**：`M6ProcessTreeChecks`（3 项）覆盖决策超时与拒绝关闭两条路径，并断言**孙进程**消失、夹具自身有效性；Linux 与 `setsid` 分离进程清理未验证。
-- [ ] T603 — 固定 1000 seeds 生成检查、资源上限与分层性能基准。验收：留存失败清单/版本/机器/构建配置；记录与 Viewer 队列无持续无限增长。**生成部分完成**：seed 0–999 全部可解（1000/1000、全部一次成功、最大参考路线 101、1.952 秒，证据 `artifacts/m6-seed-sweep/report.json`）；分层性能基准与队列增长上界未做。
+- [ ] T603 — 固定 1000 seeds 生成检查、资源上限与分层性能基准。验收：留存失败清单/版本/机器/构建配置；记录与 Viewer 队列无持续无限增长。**已完成本机可做部分**：seed 0–999 全部可解（1000/1000、全部一次成功、最大参考路线 101、1.952 秒，`artifacts/m6-seed-sweep/report.json`）；`M6ResourceChecks`（4 项）验证容量 1 的慢订阅者有界且不影响规则结果、记录行数恒为 `2N+3`、字节/步 935.7 有界、重复 5 次无状态累积，并给出分层计时（`artifacts/m6-perf/report.json`）。Linux 环境下的对应测量未做。
 - [ ] T604 — 发布包、依赖锁定、协议说明、快速上手与故障示例。验收：干净环境执行 generate→validate→run→replay→verify；可单独使用无需模型服务。
 
 阶段门槛：所有 v0.1 完成标准通过，已知限制披露，命令示例实际运行。

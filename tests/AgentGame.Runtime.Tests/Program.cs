@@ -97,6 +97,8 @@ int m5Failed = await M5ExplorerChecks.RunAsync(root);
  m5Failed += await M5CliChecks.RunAsync(root);
 int m6Failed = await M6GoldenChecks.RunAsync(root);
  m6Failed += await M6ProcessTreeChecks.RunAsync(root);
+ m6Failed += await M6ReplayCliChecks.RunAsync(root);
+ m6Failed += await M6ResourceChecks.RunAsync(root);
 return failed == 0 && m3Failed == 0 && m4Failed == 0 && m5Failed == 0 && m6Failed == 0 ? 0 : 1;
 
 string Fixture(string name) => Path.Combine(root, "tests", "Fixtures", "Core", name);

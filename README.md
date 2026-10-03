@@ -13,11 +13,12 @@ dotnet build AgentGame.slnx -c Release
 dotnet run --project tests/AgentGame.Core.Tests -c Release --no-build
 dotnet run --project tests/AgentGame.Protocol.Tests -c Release --no-build
 dotnet run --project tests/AgentGame.Runtime.Tests -c Release --no-build
+dotnet run --project tests/AgentGame.Cli.Tests -c Release --no-build
 dotnet run --project tests/AgentGame.Architecture.Tests -c Release --no-build
 pwsh -File scripts/verify.ps1        # 需要 PowerShell 7；含 30 项 CLI 黑盒检查
 ```
 
-四个验收程序共 **225 项**：Core 39、Protocol 44、Runtime 130、Architecture 12。失败返回非零。`scripts/verify.ps1`（另含 30 项 pwsh CLI 黑盒检查）需要 PowerShell 7，因为用到了 `ProcessStartInfo.ArgumentList` 与 `Kill(entireProcessTree)`。固定种子 0–99 全部可解，最长参考路线 97 回合，均在第 1 次生成成功；**seed 0–999 全部可解**（最大参考路线 101、全部一次生成成功，证据 `artifacts/m6-seed-sweep/report.json`）。
+五个验收程序共 **240 项**：Core 39、Protocol 44、Runtime 138、Cli 6、Architecture 13。失败返回非零。`scripts/verify.ps1`（另含 pwsh CLI 黑盒检查）需要 PowerShell 7，因为用到了 `ProcessStartInfo.ArgumentList` 与 `Kill(entireProcessTree)`。固定种子 0–99 全部可解，最长参考路线 97 回合，均在第 1 次生成成功；**seed 0–999 全部可解**（最大参考路线 101、全部一次生成成功，证据 `artifacts/m6-seed-sweep/report.json`）。
 
 ## 命令面
 
@@ -30,6 +31,7 @@ dotnet run --project src/AgentGame.Cli -c Release -- run --scenario artifacts/fa
 dotnet run --project src/AgentGame.Cli -c Release -- run --scenario artifacts/facility42.json --tui -- python -u agents/explorer_agent.py
 dotnet run --project src/AgentGame.Cli -c Release -- play --scenario artifacts/facility42.json --record artifacts/human.jsonl
 dotnet run --project src/AgentGame.Cli -c Release -- replay artifacts/run.jsonl
+dotnet run --project src/AgentGame.Cli -c Release -- replay artifacts/run.jsonl --tui --speed 2
 dotnet run --project src/AgentGame.Cli -c Release -- verify artifacts/run.jsonl
 ```
 

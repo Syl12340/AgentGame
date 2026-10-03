@@ -72,6 +72,16 @@
 
 阶段门槛：所有 v0.1 完成标准通过，已知限制披露，命令示例实际运行。
 
+## M7：多玩家（按需新阶段）
+
+需求与决策见 [multiplayer-requirements.md](multiplayer-requirements.md)，验收记录见 [milestones/m7.md](milestones/m7.md)。已确认范围：本地多席位、首版协作（门卡/门共享、核心单一携带者）、固定席位（中途不加入/不重连）、首切片恰好 2 席；敌对/干扰作为后续 `adversarial` 规则版本。
+
+- [x] T701 — Core 多席位规则与 `core-state/2`。验收：严格座次轮转（`tick % N`）、非本席回合拒绝且不变更状态、共享门卡/门、核心单一携带者、携带者到达出口才成功、末回合成功优先、哈希覆盖每个席位；v1 冻结不动，向量由独立 Python 实现产生。**已完成**：M7 11 项检查通过，冻结向量 `initial/carrier/success` 三态与 Python 生成器字节一致。
+- [ ] T702 — 协议 v2 与每视图投影。验收：`agent/2`、`observer/2`、`replay/2`、`scenario/2` 成套装席位字段与 `view=agent:<seat>`；每视图 `base_seq` 连续；席位观测互不泄露；`facility-zero/1` 档案仍可 `verify`。
+- [ ] T703 — 席位调度与混合席位。验收：每席位独立决策期限，超时按**已提交的 `wait`** 记录；静默席位不阻塞他人；1 人类 + 1 进程 Agent 的一局可记录、可离线 `replay`、可 `verify`；取消/超时清理 N 个进程树。
+- [ ] T704 — 旁观视图与会话清单。验收：`view=spectator` 可见公开全图且绝不下发给 Agent；`--session seats.json` 描述席位种类（人类/Agent/只等待）；端到端 2 席位演示可复现。
+- [ ] 后续（按需）— 中途加入/重连/置换、`adversarial` 规则版本（干扰、抢夺、碰撞）、3–4 席扩展、网络传输、PettingZoo 风格 RL 适配。
+
 ## 阶段验收记录模板
 
 ```text

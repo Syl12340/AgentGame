@@ -104,3 +104,15 @@ M6 现状见 [milestones/m6.md](milestones/m6.md)：225 项检查通过（Core 3
 | 主代理 | `src/AgentGame.Cli/ReplayPlayer.cs`（新）、`Program.cs` 的 `replay` 参数解析、`tests/AgentGame.Runtime.Tests/M6ReplayCliChecks.cs` | 完成 T503 剩余部分：`replay <jsonl> [--tui] [--speed N]`；4 项新增检查覆盖导出、`--tui` 重定向拒绝、`--speed` 依赖与取值、未知选项；`--speed` 无 `--tui` 时明确报错 |
 
 累计：**240 项检查通过**（Core 39、Protocol 44、Runtime 138、Cli 6、Architecture 13）。本轮仍未使用内置 `subagent`（额度经济性），全部委派经 ecnu-max；AGY 本轮未使用（无"只写文件"型任务）。
+
+## M7.1 多玩家 Core（2026-10-04）
+
+| 执行方 | 独占产物 | 主代理复核结果 |
+|---|---|---|
+| ecnu-max（需求研究，只读 ×2） | 无（报告） | 代码影响面（file:line 触点、会失效的单机检查、三大陷阱）与设计空间对比（轮转 vs 同时提交、共享 vs 携带、生命周期、本地 vs 网络）；结论与冻结报告第 15.8 节的判据一致，已并入 [multiplayer-requirements.md](multiplayer-requirements.md) |
+| ecnu-max（M7.1 实现，自验证） | `src/AgentGame.Core/Multiplayer/*`、`tests/AgentGame.Core.Tests/M7MultiSeatChecks.cs`、`tests/Fixtures/Core/generate_vectors_v2.py` + `core-golden-v2.json`、`Core.Tests/Program.cs` 注册 | 复核范围（v1 Core 一字未改）、构建、跑全量、**独立重跑 Python 向量生成器并确认字节一致**；**发现真实规则漏洞**：核心被当作全队共享，队友先占出口 + 另一席取核心即可获胜，返程要求被绕过 |
+| ecnu-max（漏洞修复，自验证） | 同上文件（改为"单一携带者"规则：`core-state/2` 用携带席索引 `core_holder`（-1 = 无人）取代共享布尔） | 独立复现：Core 39 + **M7 11/11**、其余四工程全绿；向量两次重跑 SHA-256 稳定且与提交文件一致；回归检查确实按漏洞场景构造（队友先到出口 → 断言仍未结束，携带者到出口才成功） |
+
+另：本轮把一个**越权产物** `docs/agy-subagent-standalone-research.md`（某子代理未经任务授权写入 docs/，内容是关于 AGY 独立闭环的研究草稿）移出到 `artifacts/agy-diagnostics/standalone-research-draft.md`。docs/ 下的文档保持"已审阅"状态，未审阅草稿不放行。
+
+累计：**251 项检查通过**（Core 50、Protocol 44、Runtime 138、Cli 6、Architecture 13）。

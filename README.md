@@ -18,7 +18,7 @@ dotnet run --project tests/AgentGame.Architecture.Tests -c Release --no-build
 pwsh -File scripts/verify.ps1        # 需要 PowerShell 7；含 30 项 CLI 黑盒检查
 ```
 
-五个验收程序共 **240 项**：Core 39、Protocol 44、Runtime 138、Cli 6、Architecture 13。失败返回非零。`scripts/verify.ps1`（另含 pwsh CLI 黑盒检查）需要 PowerShell 7，因为用到了 `ProcessStartInfo.ArgumentList` 与 `Kill(entireProcessTree)`。固定种子 0–99 全部可解，最长参考路线 97 回合，均在第 1 次生成成功；**seed 0–999 全部可解**（最大参考路线 101、全部一次生成成功，证据 `artifacts/m6-seed-sweep/report.json`）。
+五个验收程序共 **251 项**：Core 50（v1 单机 39 + 多席位 11）、Protocol 44、Runtime 138、Cli 6、Architecture 13。失败返回非零。`scripts/verify.ps1`（另含 pwsh CLI 黑盒检查）需要 PowerShell 7，因为用到了 `ProcessStartInfo.ArgumentList` 与 `Kill(entireProcessTree)`。固定种子 0–99 全部可解，最长参考路线 97 回合，均在第 1 次生成成功；**seed 0–999 全部可解**（最大参考路线 101、全部一次生成成功，证据 `artifacts/m6-seed-sweep/report.json`）。
 
 ## 命令面
 
@@ -55,7 +55,8 @@ dotnet run --project src/AgentGame.Cli -c Release -- verify artifacts/run.jsonl
 - [项目实施计划](docs/project-plan.md) 与 [任务清单](docs/backlog.md)
 - [并行分工与实际结果](docs/parallel-work.md)、[AGY 子代理排查与修复](docs/agy-diagnostics.md)
 - 验收记录：[M0–M1](docs/milestones/m0-m1.md)、[M2](docs/milestones/m2.md)、[M3](docs/milestones/m3.md)、[M4](docs/milestones/m4.md)、[M5](docs/milestones/m5.md)、[M6（部分）](docs/milestones/m6.md)
-- [多玩家需求研究](docs/multiplayer-requirements.md)（新阶段提案，尚未实现：席位模型、行动顺序、信息隔离与验收计划）
+- [多玩家需求研究](docs/multiplayer-requirements.md)（新阶段：席位模型、行动顺序、信息隔离与验收计划）
+- [M7 验收记录](docs/milestones/m7.md)（多玩家阶段；M7.1 Core 多席位 + `core-state/2` 已完成，协议/运行时/终端仍在后续切片）
 - 协作方式：[委派政策](docs/delegation-policy.md)（谁做什么、走哪条廉价通道、谁负责验证）
 - 运行时说明：[会话、错误与运行摘要](docs/runtime-execution.md)、[Observer/记录/回放](docs/observer-runtime.md)、[终端视图](docs/terminal.md)
 - 规则与格式：[Core 规则](docs/core-rules.md)、[规范状态编码](docs/core-state-format.md)、[随机流](docs/randomness.md)、[生成/求解](docs/generation.md)

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Text.Json;
 using AgentGame.Core;
+using AgentGame.Core.Tests;
 
 var tests = new (string Name, Action Run)[]
 {
@@ -346,7 +347,8 @@ foreach (var (name, run) in tests)
     catch (Exception e) { failed++; Console.Error.WriteLine($"FAIL {name}: {e.Message}"); }
 }
 Console.WriteLine($"Core: {tests.Length - failed}/{tests.Length} passed.");
-return failed == 0 ? 0 : 1;
+int m7Failed = await M7MultiSeatChecks.RunAsync(Root());
+return failed == 0 && m7Failed == 0 ? 0 : 1;
 
 static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
 static void Equal<T>(T expected, T actual)

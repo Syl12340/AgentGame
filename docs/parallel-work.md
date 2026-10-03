@@ -1,0 +1,96 @@
+# 并行实施分工（M0–M1）
+
+日期：2026-10-02。SDK：全局 .NET 10.0.401。所有任务仅在本工作区内修改文件，不读凭据，不修改全局配置。
+
+| 执行方 | 模型 | 独占修改范围 | 交付 |
+|---|---|---|---|
+| DSH | chatecnu/ecnu-max | src/AgentGame.Protocol/ 下的 .cs；tests/AgentGame.Protocol.Tests/ 下除 csproj 外的文件；docs/agent-protocol.md、observer-protocol.md、replay-format.md、scenario-format.md；tests/Fixtures/Protocol/ | 显式 DTO、严格 Agent 响应解析、三类协议与 Scenario 文档、协议 fixtures 与验收程序 |
+| Antigravity | gemini-3.1-pro-high | solution、所有 csproj、Directory.Build.props、global.json、.gitignore；src/AgentGame.Cli/ 下的 .cs；docs/adr/；tests/AgentGame.Architecture.Tests/ 下除其他模块文件外的所有文件 | 四项目工程、CLI 帮助骨架、架构验收、11 项 ADR |
+| Codex | 当前主代理 | src/AgentGame.Core/ 下的 .cs；tests/AgentGame.Core.Tests/ 下除 csproj 外的文件；tests/Fixtures/Core/；docs/core-rules.md、core-state-format.md、milestones/；README.md、backlog.md、project-plan.md、本文 | 纯规则/视野/快照/哈希、手工场景、规则验收、集成与文档状态 |
+
+共享约定：Core 和 Protocol 都不引用其他项目。Runtime 引用 Core/Protocol，Cli 只引用 Runtime/Protocol。全局 net10.0、nullable、implicit usings，不使用外部 NuGet 包（本阶段只需基础库；测试为可运行的 console 契约检查，非 dotnet test）。Core 测试只引用 Core，Protocol 测试只引用 Protocol，Architecture 测试只使用基础库检查工程边界。
+
+Runtime 本阶段仅工程空壳；Agent 进程、生成器、ObserverHub、权威记录与 TUI 未实施。各方不修改别人的目录，也不提前实现 M2–M6。由 Codex 最终 build/run 和审阅后更新验收状态，不以子代理自报通过为准。
+
+## 本轮实际结果与所有权移交
+
+- DSH / chatecnu/ecnu-max：写入 Protocol DTO/解析器、三份协议与 Scenario 文档、fixtures 和协议验收代码。两次调用分别出现 RPC 300 秒超时和任务 240 秒超时；没有将这些超时视为验收成功。主代理检查文件并修正空白/单行处理、显式 patch/null 清空、完整 status envelope、回放动作后哈希、生成元数据和共享配置所有权，最终 22 项协议检查通过。
+- Antigravity / gemini-3.1-pro-high：两次工程任务与一次较小只读审查均返回“成功但空答案”，没有生成可核验工程或审查结果。主代理接管工程、CLI、架构验收与 ADR。不能把它记为已交付模块。
+- Codex：完成纯 Core 与 26 项检查、独立 Python 编码向量、工程/CLI/架构补位，以及全量集成。四生产项目、三验收项目已构建成功；最终 63 项检查通过。
+
+所有子代理调用已返回后，模块统一交由主代理集成维护。未修改调研报告；未部署或发布。后续再次并行时重新明确目录所有权并限制任务包，优先先验证代理能返回实际产物。
+
+## M2 并行工作与验收（2026-10-03）
+
+| 执行方 | 独占任务 | 实际结果 |
+|---|---|---|
+| DSH / chatecnu/ecnu-max | PCG32、命名流、randomness.md；末轮只读代码审查 | 交付随机模块；主代理发现第一步初始化被丢弃，反馈修正，并以独立Python向量验证。明确小端读取与bound=1消耗随机值。 |
+| AGY / gemini-3.1-pro-high | 原计划Runtime映射；修复后改为generation.md文档模块 | 初始任务因headless写权限被拒绝未交付。桥接修复后实际写入生成文档，主代理核对并修正128步适用范围与输出契约。 |
+| Codex | 求解器、任务校验与生成器；Runtime/CLI接管；测试、桥接排查与集成 | 完成103项项目检查和100种子真实执行；AGY桥接7项检查及真实只读/写入任务通过。 |
+
+目录移交均在前一调用结束后进行，未并发改写同一文件。原始调研报告哈希保持不变。AGY全局桥接的本次修复属于用户要求的代理排查，原文件已备份；详情见 [agy-diagnostics.md](agy-diagnostics.md)。M2验收见 [milestones/m2.md](milestones/m2.md)，下一阶段M3尚未开始。
+
+DSH末轮只读审查的两条疑点经主代理复核未成立：求解器每条边实际调用 `Game.Step`，并丢弃已截断状态，已有max_ticks=1与13/12边界检查；省略tick的去重键不等于省略回合限制。另一个128×128导致生成DTO超过64 KiB的判断也不成立：Runtime生成入口固定21×13且不暴露尺寸参数；Core最大ASCII地形仅16384字符。没有据此增加重复规则或修改已通过的转移逻辑。
+
+## M3并行工作与验收（2026-10-03）
+
+| 执行方 | 独占模块 | 实际交付与复核 |
+|---|---|---|
+| DSH / chatecnu/ecnu-max | agents/random_agent.py；tests/Fixtures/Agents/fault_agent.py | 生产随机Agent及18种初始故障模式；主代理检查源码，补齐显式UTF-8、生产宿主错误判定与4种后续测试模式。 |
+| AGY / gemini-3.1-pro-high | Runtime/Agents/JsonLineTransport.cs | 初次终端命令被sandbox拒绝，桥接正确返回错误；限定仅文件工具后交付传输模块。主代理检查并改用固定行缓存、增加取消检查。 |
+| Codex | AgentModels、进程会话、stderr尾部、GameRunner、CLI、测试和文档 | 运行/取消/超时/错误边界与真实进程验收；全部149项检查通过，外部13步成功哈希匹配Core golden。 |
+
+AGY使用已修复桥接的新MCP进程，保留sandbox和任务级写入授权，没有扩大终端权限；DSH/AGY任务结束后再移交修改所有权。最终证据见 [milestones/m3.md](milestones/m3.md)，完整日志 `artifacts/m3-verification.log`。M4为下一阶段。
+
+## M4 并行工作与验收（2026-10-03）
+
+本轮改用四个并行的通用子代理（不再是 DSH/AGY 桥接），每个只负责一个独立产物，主代理负责接线、编译、运行与判定。**所有子代理在各自会话里都无法执行 shell（同一沙箱错误），因此它们只写文件、全部由主代理实际构建与运行验证**；子代理自报的“完成”一律不作为验收。
+
+| 子代理 | 独占产物 | 主代理复核结果 |
+|---|---|---|
+| 只读审计 | 无（报告） | 提出 4 条：2 条成立（退出码文档冲突、`--headless` 无语义），2 条不成立（记录失败后发成功终局、场景静默截断）。逐条复核见 [m4.md](milestones/m4.md) |
+| CLI 黑盒检查 | `tests/AgentGame.Runtime.Tests/M4CliChecks.cs`（507 行） | 交付时未编译：主代理修 5 处编译错误与 4 处错误断言（replay 导出行数按 envelope 类型计、篡改 wait 无变化、独立重演未覆盖哈希篡改、verify 首个不一致步的 tick 语义）后达 8/8 通过 |
+| 探索 Agent（M5 前置） | `agents/explorer_agent.py`（795 行） | 未运行过；主代理用 CLI 实测：手工样例 13 回合最优（哈希等于 Core golden）、生成场景（seed 7，最短 45）45 回合最优，两次 `verify` 均 valid；非法参数时宿主报 `agent_exited` 且 tick 为 0 |
+| 终端视图（M5） | `src/AgentGame.Cli/TerminalView.cs` | 本轮内交付，接线与验收在 M5 进行 |
+
+本轮主代理另修改：`Program.cs`（`--headless` 语义与冲突校验、帮助文本退出码说明）、`tests/AgentGame.Runtime.Tests/Program.cs`（注册 CLI 检查）、`docs/project-plan.md` 第 9 节（退出码与命令面改为实际约定）、`README.md`、`docs/backlog.md`、新增 [observer-runtime.md](observer-runtime.md) 与 [milestones/m4.md](milestones/m4.md)。
+
+环境限制：本会话的命令沙箱最初完全不可用（`sandbox-local windows-acl temp grant materialization failed`），放宽权限后只有 Windows PowerShell 5.1、找不到 pwsh 7，因此 `scripts/verify.ps1` 等需要 PowerShell 7 的 30 项 CLI 黑盒检查**本轮未重跑**；M4 的同类覆盖改由 Runtime 项目的 C# 黑盒检查承担（8 项，真实子进程）。原调研报告哈希保持不变。
+
+M4 验收结论与完整证据见 [milestones/m4.md](milestones/m4.md)：四个验收程序 203 项全部通过，构建 0 警告 0 错误。
+
+## M5 并行工作与验收（2026-10-03）
+
+**模型路由调整（用户要求）**：本会话的内置 `subagent` 工具没有模型参数，无法直接指定模型，因此 M5 后期改用两种更省的委派通道：
+
+- `workflow` 的 `agent(prompt, { provider: 'chatecnu', model: 'ecnu-max' })`：DSH 内置子代理可调用的校内免费额度模型。已用探针验证（返回 `ECNU_OK`），M5 的两个只读审查即由此完成。
+- AGY 桥接：`artifacts/agy-diagnostics/dispatch-task.mjs`（可复用脚本，`--task-file/--model/--timeout/--readonly`），模型 `gemini-3.1-pro-high`（别名 `pro`）或 `gemini-3.8-flash-high`（别名 `cheap`）。`ReplayControls.cs` 由此交付，AGY 自带 accept-edits 授权。
+
+| 执行方 | 独占产物 | 主代理复核结果 |
+|---|---|---|
+| 内置子代理 | `src/AgentGame.Cli/TerminalView.cs`（~740 行） | 交付时在仓库外隔离工程实测：编译 0 警告、106 项行为检查通过（96 种尺寸、纯文本无 ESC、真实 fixture 渲染）。**发现并报告**冻结 fixture 的 `entity_removals:["guard_1"]` 指向不存在实体，会被 reducer 拒绝——主代理已修 fixture 并加回归检查（M4 Observer 10/10） |
+| 内置子代理 | `src/AgentGame.Runtime/HumanSession.cs`、`src/AgentGame.Cli/HumanInput.cs` | 自带 40 项仓库外断言；主代理端到端验证：重定向 `play` 完成 13 回合、记录 `verify` 通过 |
+| 内置子代理 | `tests/AgentGame.Runtime.Tests/M5ExplorerChecks.cs` | 该子代理在交付前被中止（无结束消息），但其文件可用：注册后随修复后的探索 Agent 达到 **9/9 通过** |
+| 内置子代理 | `agents/explorer_agent.py` 活锁修复 | 同样在交付前被中止；主代理实测其修复已落地：手工样例恢复 **13 回合最优**（哈希等于 Core golden）、12 种子中不再出现原地重复失败动作 |
+| 内置子代理 | `tests/AgentGame.Runtime.Tests/M5CliChecks.cs` | 自带 5/5 真实子进程实测（`--tui` 重定向拒绝、互斥、`play` 记录+verify、参数错误、无 ANSI） |
+| AGY / gemini-3.1-pro-high | `src/AgentGame.Cli/ReplayControls.cs` | 一次交付成功；主代理编译通过并在 `run --tui` 中接线使用 |
+| ecnu-max 只读审查 ×2 | 无（报告） | 代码审查发现一个**真实缺陷**：`play` 模式下 sink 的按键轮询与 `HumanInput` 争抢同一个控制台（已修：新增 `interactiveControls`）；文档审查发现 README/terminal.md 的过时与不符表述（已修）。另有两条未验证疑虑记录在 [m5.md](milestones/m5.md) |
+
+主代理本轮另修改：`Program.cs`（`--tui`、`play`、帮助文本、退出码说明）、`src/AgentGame.Cli/TerminalObserverSink.cs`（新文件，实时观察者 + 控制权开关）、`docs/terminal.md`、`docs/replay-format.md`、`docs/observer-protocol.md`、`docs/runtime-execution.md`、`docs/observer-runtime.md`、`docs/project-plan.md`、`README.md`、`docs/backlog.md`，新增 [milestones/m5.md](milestones/m5.md)，并修复冻结 fixture。
+
+M5 验收结论见 [milestones/m5.md](milestones/m5.md)：四个验收程序 **218 项**全部通过（Core 39、Protocol 44、Runtime 123、Architecture 12），构建 0 警告 0 错误。原调研报告哈希保持不变。
+
+## M6 并行工作与验收（2026-10-04）
+
+从本轮起主代理转入**高级审查**角色，并执行 [委派政策](delegation-policy.md)：产出交给廉价通道，主代理负责审查、修错与独立复现。**不再使用内置 `subagent` 工具**（它计费在 ds 账号上）。
+
+| 执行方 | 独占产物 | 主代理复核结果 |
+|---|---|---|
+| ecnu-max（1 个自验证代理） | `tests/AgentGame.Runtime.Tests/M6GoldenChecks.cs`（4 项） | 该代理用仓库外宿主工程自跑 4/4；主代理注册进 `Program.cs`、重新构建并运行 → **4/4 通过**，并逐条审阅断言强度（记录文件用**逐字节**比对而非只比长度） |
+| AGY / gemini-3.1-pro-high（只写文件） | `tests/AgentGame.Runtime.Tests/M6ProcessTreeChecks.cs`、`tests/Fixtures/Agents/descendant_agent.py` | 编译 0 警告、运行 **3/3 通过**；主代理核验：夹具先派生孙进程并 fsync pidfile 再握手；检查 1 用 `agent_process_id` 与 pidfile 绑定；检查 3 单独证明孙进程确实存活过，避免"夹具没跑起来"的假通过 |
+| ecnu-max（测量代理） | `artifacts/m6-seed-sweep/report.json` + 临时 harness | 自报 1000/1000；主代理**独立重跑 harness**（同样 1000/1000、最大参考路线 101、全部一次成功、1.952 秒）并用 CLI 抽查 seed 0/1/250/500/750/999 全部生成且可验证 |
+| 主代理 | `Program.cs` 注册、`docs/milestones/m6.md`、README/backlog/project-plan 计数同步 | 225 项检查通过 |
+
+能力探测（本轮）：**ecnu-max 子代理具备 shell**（实测 `dotnet --version` → `10.0.401`），因此可自验证的任务优先派给它；AGY 的终端命令仍被沙箱拒绝，只能写文件。两类的产物主代理都必须独立复现一次才算验收。
+
+M6 现状见 [milestones/m6.md](milestones/m6.md)：225 项检查通过（Core 39、Protocol 44、Runtime 130、Architecture 12）；Linux、分层性能基准、队列增长上界、发布包与 pwsh 7 脚本重跑仍未完成。

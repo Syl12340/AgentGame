@@ -1,0 +1,7 @@
+{
+  "format": "scenario/1", "rules": "facility-zero/1", "generator": "manual/1",
+  "rows": ["#########", "#.......#", "#########"],
+  "start": {"x": 1, "y": 1}, "exit": {"x": 1, "y": 1},
+  "key": {"x": 5, "y": 1}, "door": {"x": 4, "y": 1}, "core": {"x": 6, "y": 1},
+  "max_ticks": 512, "visibility_radius": 3
+}

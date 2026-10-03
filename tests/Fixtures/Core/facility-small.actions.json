@@ -1,0 +1,9 @@
+[
+ {"type":"move","direction":"east"}, {"type":"pickup"},
+ {"type":"move","direction":"east"}, {"type":"interact","direction":"east"},
+ {"type":"move","direction":"east"}, {"type":"move","direction":"east"},
+ {"type":"move","direction":"east"}, {"type":"pickup"},
+ {"type":"move","direction":"west"}, {"type":"move","direction":"west"},
+ {"type":"move","direction":"west"}, {"type":"move","direction":"west"},
+ {"type":"move","direction":"west"}
+]

@@ -1,0 +1,5 @@
+{"type":"ready","protocol":"agent/1","name":"explorer"}
+{"type":"action","request_id":"r42","action":{"type":"move","direction":"east"}}
+{"type":"action","request_id":"r42","action":{"type":"interact","direction":"north"}}
+{"type":"action","request_id":"r1","action":{"type":"pickup"}}
+{"type":"action","request_id":"r9","action":{"type":"wait"}}

@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="src/AgentGame.Core/AgentGame.Core.csproj" />
+  <Project Path="src/AgentGame.Protocol/AgentGame.Protocol.csproj" />
+  <Project Path="src/AgentGame.Runtime/AgentGame.Runtime.csproj" />
+  <Project Path="src/AgentGame.Cli/AgentGame.Cli.csproj" />
+  <Project Path="tests/AgentGame.Core.Tests/AgentGame.Core.Tests.csproj" />
+  <Project Path="tests/AgentGame.Protocol.Tests/AgentGame.Protocol.Tests.csproj" />
+  <Project Path="tests/AgentGame.Runtime.Tests/AgentGame.Runtime.Tests.csproj" />
+  <Project Path="tests/AgentGame.Architecture.Tests/AgentGame.Architecture.Tests.csproj" />
+</Solution>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../AgentGame.Core/AgentGame.Core.csproj" />
+    <ProjectReference Include="../AgentGame.Protocol/AgentGame.Protocol.csproj" />
+  </ItemGroup>
+</Project>

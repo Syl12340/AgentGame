@@ -1,0 +1,22 @@
+{
+  "unknown_field":         {"type":"action","request_id":"r42","action":{"type":"move","direction":"east"},"surprise":1},
+  "duplicate_field":       {"type":"action","request_id":"r42","request_id":"r7","action":{"type":"move","direction":"east"}},
+  "type_wrong_kind":       {"type":42,"protocol":"agent/1","name":"explorer"},
+  "ready_extra_field":     {"type":"ready","protocol":"agent/1","name":"explorer","role":"mapper"},
+  "missing_request_id":    {"type":"action","action":{"type":"move","direction":"east"}},
+  "missing_name":          {"type":"ready","protocol":"agent/1"},
+  "missing_action":        {"type":"action","request_id":"r42"},
+  "wrong_protocol":        {"type":"ready","protocol":"agent/9","name":"explorer"},
+  "unknown_type":          {"type":"dance","name":"x"},
+  "bad_direction":         {"type":"action","request_id":"r42","action":{"type":"move","direction":"diagonal"}},
+  "null_direction":        {"type":"action","request_id":"r42","action":{"type":"move","direction":null}},
+  "direction_on_wait":     {"type":"action","request_id":"r42","action":{"type":"wait","direction":"east"}},
+  "pickup_with_direction": {"type":"action","request_id":"r42","action":{"type":"pickup","direction":"east"}},
+  "move_missing_direction":{"type":"action","request_id":"r42","action":{"type":"move"}},
+  "null_request_id":       {"type":"action","request_id":null,"action":{"type":"wait"}},
+  "empty_request_id":      {"type":"action","request_id":"","action":{"type":"wait"}},
+  "action_not_object":     {"type":"action","request_id":"r42","action":"move east"},
+  "numeric_action_type":   {"type":"action","request_id":"r42","action":{"type":7}},
+  "uppercase_direction":   {"type":"action","request_id":"r42","action":{"type":"move","direction":"East"}},
+  "null_root":             null
+}

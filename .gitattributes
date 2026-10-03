@@ -1,0 +1,13 @@
+# Keep the working tree byte-stable across machines: the test fixtures and generated records
+# are compared byte-for-byte in places, so line endings must not be rewritten by core.autocrlf.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.dll binary
+*.exe binary
+*.pfx binary
+*.zip binary

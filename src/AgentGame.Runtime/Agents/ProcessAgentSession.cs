@@ -62,6 +62,29 @@ internal sealed class ProcessAgentSession
         message, bytes => AgentResponseParser.ParseAction(bytes, message.RequestId),
         "decision", message.RequestId, _timeouts.Decision, cancellationToken);
 
+    internal Task<ReadyResponse> HandshakeV2Async(int seatCount, CancellationToken cancellationToken) => ExchangeAsync(
+        new AgentV2HelloMessage { Limits = new AgentV2Limits { SeatCount = seatCount } },
+        bytes => AgentV2Codec.ParseReady(bytes), "handshake", null, _timeouts.Handshake, cancellationToken);
+
+    internal Task<ActionRequestDto> DecideV2Async(AgentV2ObservationMessage observation, CancellationToken cancellationToken) => ExchangeAsync(
+        observation, bytes => AgentV2Codec.ParseAction(bytes, observation.RequestId).Action,
+        "decision", observation.RequestId, _timeouts.Decision, cancellationToken);
+
+    internal async Task EndV2Async(AgentV2EpisodeEndMessage message, CancellationToken cancellationToken)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(_timeouts.Decision);
+        try
+        {
+            RejectBufferedOutput("episode_end", message.RequestId);
+            await _transport.WriteLineAsync(System.Text.Encoding.UTF8.GetBytes(AgentV2Codec.EncodeEpisodeEnd(message)), deadline.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        { throw new AgentSessionException("decision_timeout", "episode_end", "Agent end-message deadline exceeded.", message.RequestId); }
+        catch (JsonLineException error) { throw new AgentSessionException(error.Code, "episode_end", error.Message, message.RequestId); }
+        catch (IOException error) { throw new AgentSessionException("transport_error", "episode_end", error.Message, message.RequestId); }
+    }
+
     private async Task<T> ExchangeAsync<T>(object message, Func<byte[], T> parse, string phase, string? requestId,
         TimeSpan timeout, CancellationToken cancellationToken)
     {

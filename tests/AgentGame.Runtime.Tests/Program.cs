@@ -3,6 +3,10 @@ using AgentGame.Protocol;
 using AgentGame.Runtime;
 
 string root = FindRoot();
+if (args is ["--m7-observer-only"]) return M7ObserverChecks.Run(root);
+if (args is ["--m7-sources-only"]) return await M7SeatSourceChecks.RunAsync(root);
+if (args is ["--m7-runtime-only"]) return await M7RuntimeChecks.RunAsync(root);
+if (args is ["--external-only"]) return await ExternalSessionChecks.RunAsync(root);
 string temporary = Path.Combine(root, "artifacts", "runtime-tests", Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(temporary);
 var tests = new (string Name, Action Run)[]
@@ -99,7 +103,11 @@ int m6Failed = await M6GoldenChecks.RunAsync(root);
  m6Failed += await M6ProcessTreeChecks.RunAsync(root);
  m6Failed += await M6ReplayCliChecks.RunAsync(root);
  m6Failed += await M6ResourceChecks.RunAsync(root);
-return failed == 0 && m3Failed == 0 && m4Failed == 0 && m5Failed == 0 && m6Failed == 0 ? 0 : 1;
+int m7Failed = M7ObserverChecks.Run(root);
+ m7Failed += await M7SeatSourceChecks.RunAsync(root);
+ m7Failed += await M7RuntimeChecks.RunAsync(root);
+int externalFailed = await ExternalSessionChecks.RunAsync(root);
+return failed == 0 && m3Failed == 0 && m4Failed == 0 && m5Failed == 0 && m6Failed == 0 && m7Failed == 0 && externalFailed == 0 ? 0 : 1;
 
 string Fixture(string name) => Path.Combine(root, "tests", "Fixtures", "Core", name);
 static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }

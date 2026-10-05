@@ -8,8 +8,8 @@ using AgentGame.Runtime.Replay;
 
 if (args.Length == 0 || (args.Length == 1 && args[0] is "--help" or "-h" or "help"))
 {
-    Console.WriteLine("Agent Game / Facility Zero — v0.1-dev (M0–M5)");
-    Console.WriteLine("Usage: agent-game --help | --version | scenario generate | scenario validate | run | play | replay | verify");
+    Console.WriteLine("Agent Game / Facility Zero — v0.1-dev");
+    Console.WriteLine("Usage: agent-game --help | --version | scenario generate | scenario validate | run | play | serve | replay | verify");
     Console.WriteLine("  scenario generate --seed <UInt64> --out <new-file> [--max-ticks 512] [--max-reference-length 128] [--max-attempts 16]");
     Console.WriteLine("  scenario validate <file>");
     Console.WriteLine("Generation never overwrites an existing file. Summaries are JSON; errors go to stderr.");
@@ -17,8 +17,9 @@ if (args.Length == 0 || (args.Length == 1 && args[0] is "--help" or "-h" or "hel
     Console.WriteLine("  play --scenario <file> [--record <new-jsonl>] [--plain]   Play it yourself; keys: arrows/WASD move, e+dir or Shift+dir interact, space pickup, . wait, q quit.");
     Console.WriteLine("  replay <jsonl> [--tui] [--speed 1.0]   Export the recorded Observer stream as JSONL, or replay it in the terminal with pause/step/speed controls.");
     Console.WriteLine("  verify <jsonl>     Check committed actions, hashes and patches against the saved scenario.");
+    Console.WriteLine("  serve --scenario <file> [--port 8765] [--record <new-jsonl>] [--tui]   Wait for external HTTP/MCP actions on loopback; Ctrl+C stops the server.");
     Console.WriteLine("Run prints one JSON summary; --observer-stdout streams Observer JSONL and sends its summary to stderr.");
-    Console.WriteLine("--headless attaches no terminal observer; --tui renders the live map and accepts space/./-/+/q. They are mutually exclusive, and --tui needs an interactive terminal.");
+    Console.WriteLine("run --headless attaches no terminal observer; run --tui renders the live map and accepts space/./-/+/q. They are mutually exclusive, and --tui needs an interactive terminal.");
     Console.WriteLine("Exit codes: 0 success/rule end, 1 failed run or invalid scenario, 2 usage error, 130 cancelled. The cause is the JSON error.code.");
     return 0;
 }
@@ -27,6 +28,7 @@ if (args.Length == 1 && args[0] == "--version")
     Console.WriteLine("agent-game 0.1.0-dev");
     return 0;
 }
+if (args[0] == "serve") return await ExternalGameServer.RunAsync(args[1..]);
 if (args[0] == "scenario")
 {
     try

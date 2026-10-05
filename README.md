@@ -1,6 +1,6 @@
 # Agent Game / Facility Zero
 
-面向脚本和后续 LLM/RL Agent 的程序生成回合制设施探索游戏。当前已通过 **M0–M5**（M5 的回放播放控制尚未接线）：工程、协议、纯 Core、场景生成与求解、Agent 子进程执行、Observer 投影、权威记录、离线回放与动作核验、终端实时观察者、人工模式与探索基线。
+面向脚本与外部 LLM Agent 的程序生成回合制设施探索游戏。已有单人终端游戏、Agent 子进程、权威记录与回放核验；多人库完成 M7.1–M7.3。新增 `serve` 与 MCP 工具入口，外部 Agent 可以主动观察、操作运行中的单人游戏。
 
 Core 支持局部探索、拿门卡、开必经门、取核心与返程成功。它采用整数规则、单局串行所有权、不可变外发快照和独立于 JSON 的规范状态哈希。
 
@@ -18,7 +18,7 @@ dotnet run --project tests/AgentGame.Architecture.Tests -c Release --no-build
 pwsh -File scripts/verify.ps1        # 需要 PowerShell 7；含 30 项 CLI 黑盒检查
 ```
 
-五个验收程序共 **280 项**：Core 65（v1 单机 39 + 多席位 11 + 多人生成 5 + 边界 8 + 流派生等价 2）、Protocol 58（v1 44 + 协议 v2 14）、Runtime 138、Cli 6、Architecture 13。失败返回非零。`scripts/verify.ps1`（另含 pwsh CLI 黑盒检查）需要 PowerShell 7，因为用到了 `ProcessStartInfo.ArgumentList` 与 `Kill(entireProcessTree)`。固定种子 0–99 全部可解，最长参考路线 97 回合，均在第 1 次生成成功；**seed 0–999 全部可解**（最大参考路线 101、全部一次生成成功，证据 `artifacts/m6-seed-sweep/report.json`）。
+五个验收程序共 **329 项**：Core 65（v1 单机 39 + 多席位 11 + 多人生成 5 + 边界 8 + 流派生等价 2）、Protocol 58（v1 44 + 协议 v2 14）、Runtime 187（多人检查 39 项、外部会话 10 项）、Cli 6、Architecture 13。另有 `python tests/external_game_checks.py` 的 **10 项真实 HTTP/MCP 检查**，统一脚本也会运行。失败返回非零。`scripts/verify.ps1`（另含 pwsh CLI 黑盒检查）需要 PowerShell 7，因为用到了 `ProcessStartInfo.ArgumentList` 与 `Kill(entireProcessTree)`。固定种子 0–99 全部可解，最长参考路线 97 回合，均在第 1 次生成成功；**seed 0–999 全部可解**（最大参考路线 101、全部一次生成成功，证据 `artifacts/m6-seed-sweep/report.json`）。
 
 ## 命令面
 
@@ -30,6 +30,7 @@ dotnet run --project src/AgentGame.Cli -c Release -- run --scenario artifacts/fa
 dotnet run --project src/AgentGame.Cli -c Release -- run --scenario artifacts/facility42.json --observer-stdout --record artifacts/stream.jsonl -- python -u agents/explorer_agent.py
 dotnet run --project src/AgentGame.Cli -c Release -- run --scenario artifacts/facility42.json --tui -- python -u agents/explorer_agent.py
 dotnet run --project src/AgentGame.Cli -c Release -- play --scenario artifacts/facility42.json --record artifacts/human.jsonl
+dotnet run --project src/AgentGame.Cli -c Release -- serve --scenario tests/Fixtures/Core/facility-small.json --port 8765 --tui
 dotnet run --project src/AgentGame.Cli -c Release -- replay artifacts/run.jsonl
 dotnet run --project src/AgentGame.Cli -c Release -- replay artifacts/run.jsonl --tui --speed 2
 dotnet run --project src/AgentGame.Cli -c Release -- verify artifacts/run.jsonl
@@ -38,6 +39,7 @@ dotnet run --project src/AgentGame.Cli -c Release -- verify artifacts/run.jsonl
 - 生成拒绝覆盖已有文件；默认 21×13 地图、512 回合、参考路径 ≤128 步、最多尝试 16 次；输出 JSON 摘要，不导出参考动作。
 - `run` 用外部 Agent 的 JSONL stdin/stdout，打印一行 `run/1` 摘要。`--observer-stdout` 独占 stdout 并把摘要改送 stderr；`--headless` 表示不挂终端旁观者；`--tui` 渲染实时地图并支持暂停/单步/倍率（需要交互终端，与另两者互斥）。
 - `play` 让你自己玩：方向键/WASD 移动、`e`+方向或 Shift+方向 交互、空格 pickup、`.` 等待、`q`/Esc 退出；`--record` 出来的记录同样可以 `verify`。
+- `serve` 保持游戏运行，外部 Agent 主动通过 HTTP 或 MCP 工具读取局部观测、提交动作；无动作时一直等待。`--tui` 显示现场，`--record` 保存回放，Ctrl+C 关闭服务。接入方式见 [外部 Agent 控制接口](docs/external-agent-control.md)。
 - `replay` 不需要 Core 或 Agent 即可播放；`verify` 用同版规则与编码逐步重演并核对哈希、反馈、事件与补丁，首个不一致步给出行号与 tick。
 - 退出码：0 正常结束（含规则失败/回合截断）、1 运行失败或记录不可核验、2 参数错误、130 取消。原因细分看 JSON（`kind`、`error.code`、`valid`、`status`、`line`）。
 - 随机 Agent 达到回合上限属于正常基线结果，成功率不作为门槛。手工样例的最短完整任务是 13 回合；`agents/explorer_agent.py` 实测在手工样例 13 回合、生成场景 45 回合（均为最短路线）完成任务。
@@ -56,13 +58,15 @@ dotnet run --project src/AgentGame.Cli -c Release -- verify artifacts/run.jsonl
 - [并行分工与实际结果](docs/parallel-work.md)、[AGY 子代理排查与修复](docs/agy-diagnostics.md)
 - 验收记录：[M0–M1](docs/milestones/m0-m1.md)、[M2](docs/milestones/m2.md)、[M3](docs/milestones/m3.md)、[M4](docs/milestones/m4.md)、[M5](docs/milestones/m5.md)、[M6（部分）](docs/milestones/m6.md)
 - [多玩家需求研究](docs/multiplayer-requirements.md)（新阶段：席位模型、行动顺序、信息隔离与验收计划）
-- [M7 验收记录](docs/milestones/m7.md)（多玩家阶段；M7.1 Core 多席位 + `core-state/2` 已完成，协议/运行时/终端仍在后续切片）
+- [M7 验收记录](docs/milestones/m7.md)（多玩家 Core、生成/求解、v2 协议、每视图 Observer 与双席位运行/回放已完成；CLI 会话入口待 M7.4）
+- [多人 Runtime](docs/multiplayer-runtime.md)（席位来源、退役策略、单视图档案与验收入口）
+- [外部 Agent 主动控制](docs/external-agent-control.md)（持久单人会话、HTTP 契约、MCP 配置与实测）
 - 协作方式：[委派政策](docs/delegation-policy.md)（谁做什么、走哪条廉价通道、谁负责验证）
 - 运行时说明：[会话、错误与运行摘要](docs/runtime-execution.md)、[Observer/记录/回放](docs/observer-runtime.md)、[终端视图](docs/terminal.md)
 - 规则与格式：[Core 规则](docs/core-rules.md)、[规范状态编码](docs/core-state-format.md)、[随机流](docs/randomness.md)、[生成/求解](docs/generation.md)
 - 协议：[Agent](docs/agent-protocol.md)、[Observer](docs/observer-protocol.md)、[Scenario](docs/scenario-format.md)、[Replay](docs/replay-format.md)
 - [ADR 001](docs/adr/001.md) 起的 11 项架构决策
 
-下一实施包为 M6：Windows/Linux 构建与 golden 核验、进程树清理黑盒、1000 种子与性能基准、发布包与快速上手文档。剩余已知项：`replay --speed/--pace` 播放控制、真实终端观感确认。v0.1.1 增加网页旁观，v0.2 增加环境控制/Gymnasium 与配对评测。
+多玩家 Runtime 已支持双席位调度、超时提交 wait、混合席位和 v2 记录/核验；下一实施包 M7.4 接入 CLI 会话清单及终端多视图。当前 CLI 仍走单席位 v1 路径。M6 的 Linux 对照、发布包与真实终端观感确认仍待完成。v0.1.1 增加网页旁观，v0.2 增加环境控制/Gymnasium 与配对评测。
 
 当前验收环境为 Windows。Linux 对照、完整后代/孤儿进程清理与跨平台进程树验证仍属 M6 发布门槛，不宣称已完成。

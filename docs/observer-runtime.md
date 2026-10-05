@@ -55,3 +55,17 @@ dotnet run --project src/AgentGame.Cli -c Release -- verify artifacts/run.jsonl
 4. 订阅队列有界；拥塞表现为脱离/重同步，绝不表现为“继续应用但状态错误”。
 5. `replay` 不依赖 Core/Agent；`verify` 必须用同版规则与编码，否则明确拒绝核验。
 6. 外发 DTO 在边界处被重新解析/克隆，调用方持有的可变数组不会渗透进运行状态。
+
+## 多玩家 Observer 库（M7.2b）
+
+`MultiObserverSession` 从同一不可变多人快照和每席 `MultiObservation` 建立 `agent:0..N-1` 与 `spectator`。席位只看自己的观测与历史；其他席位动作只向它发布公开阶段/终局事件。旁观视图显示公开全图及各席位实体，绝不作为席位输入。旁观库存表示队伍已获取的物品；席位库存仅有共享门卡与本席携带的核心。
+
+各视图 `GetHub(view).Register()` 原子返回 v2 快照与订阅；使用 `MultiVisualState` 归并。状态消息可以只发布到一个视图，所以视图的 seq 可以不同；同一 Core 步更新所有视图的 tick。
+
+提交顺序接口为 `PrepareStep(after, observations, step)` → 外部权威记录准备结果的 `Batches` → `Commit(prepared)`。准备阶段克隆缓存，不改变任何已提交快照；记录失败时丢弃准备结果并结束运行，不能继续接受动作。`PrepareStatus(view,status)` 使用相同边界。读到的 `Batches` 及订阅消息都有独立数组；旧提交、重复提交及跨会话提交均被拒绝。
+
+本阶段只实现可测试的 Runtime 组件；多人调度、权威 v2 文件 I/O、CLI 和终端接线属于 M7.3–M7.4。
+
+后续 M7.3 已接入双席位运行器及 v2 权威文件 I/O；CLI 与终端接线仍待 M7.4，详见 [多人 Runtime](multiplayer-runtime.md)。
+
+运行调用方必须由同一逻辑所有者串行执行准备、记录和提交。提交令牌与边界检查可拒绝过期或重复结果，但不负责把多个调用方的外部文件 I/O 串行化；读取快照、注册和消费订阅可以并发进行。

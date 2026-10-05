@@ -131,3 +131,58 @@ M6 现状见 [milestones/m6.md](milestones/m6.md)：225 项检查通过（Core 3
 另：AGY 本轮又**越权**在 `docs/` 写了一份未审阅草稿（bridge 并行笔记），已移出到 `artifacts/agy-diagnostics/bridge-parallel-draft.md`；`docs/` 只保留已审阅文档。
 
 累计：**280 项检查通过**（Core 65、Protocol 58、Runtime 138、Cli 6、Architecture 13）。
+
+## M7.2b：每视图 Observer（本次续作）
+
+以项目更新后的 `090ed16` 为基线继续。两个 DSH/ecnu-max 任务并行交付：投影 `MultiObserverProjection.cs`；归并器和 Hub `MultiVisualState.cs`、`MultiObserverHub.cs`。测试委派超时且未写入文件，未计为完成。主代理实现准备/提交协调、14 项验收与入口，并审阅所有实际文件。
+
+初始 AGY Pro High 两个实现任务均因服务端地区限制失败，无交付；明确报告后改由 DSH 实施，没有修改账号或网络。用户要求重试后，无项目内容的连接测试实际返回 `AGY_OK`。自动审批拒绝了具体源码审查，理由是私有源码外发授权不明确；该审查没有启动，也不能计为通过。
+
+主代理修正公开事件的 reason 过滤，并复用准备阶段已验证的归并器；新增检查先复现、再修正 v2 的溢出席位 ID 和事件跨席引用漏洞。Release 构建零警告、零错误；五程序 **294/294**（Core 65、Protocol 58、Runtime 152、Cli 6、Architecture 13）。本切片未新增内置子代理。多人调度、v2 文件与 CLI 接线待 M7.3–M7.4，见 [M7验收](milestones/m7.md)。
+
+### 源码授权后的补充审查（2026-10-04）
+
+用户明确授权 DeepSeek Harness 和 Antigravity 处理本项目源码，已记入 [委派政策](delegation-policy.md)。DSH 只读审查准备/提交、归并和 Hub；AGY Pro High 只读审查 v2 codec，以及投影的 `Events` / `BuildAgent`。两个通道均未报告范围内的具体新缺陷，主代理核对了相关实现。审查没有修改产品代码或运行测试，沿用上述已完成的 294 项验收。
+
+AGY bridge 1.4.0 的后台审查任务 `1fe1da2e-4178-4c49-9ab0-d0f4c571f59b` 因 worker 退出成为 `interrupted`，没有结果，原因未确认。单文件同步审查完成 codec（会话 `0857691b-4224-47a2-a2e0-b160b2d3810a`）；投影首次同步调用超时，缩小到两个方法并继续原会话 `43857ee6-032e-43a0-8403-0c14dd551bd5` 后交付。失败调用均未计为完成，没有更换账号、网络或全局权限。
+
+### M7.3 分工（进行中）
+
+DSH 两项任务分别独占多人场景服务及 v2 记录/回放文件、多人运行器及提交器；AGY 独占 agent/2 进程方法、混合席位来源和对应检查。任务书位于 `artifacts/agy-diagnostics/task-m73-*.md`。主代理负责注册验收、检查实际改动和独立复现。本轮使用 bridge 1.5.0 的任务命令授权；AGY 仅获得 Runtime 项目的精确构建命令，不授予全局终端权限。
+
+AGY 任务 `bfd7a0c5-d8a2-4c66-9b88-4b3424973b2c` 返回 `failed` / `denied_actions: escalate_admin`。命令审计先拒绝一条未授权命令（仅保存摘要），再允许精确的 Runtime 构建命令，但 Windows 终端沙箱要求交互式管理员初始化，未完成构建。主代理已向用户说明并请求初始化许可，未自动提权或重试。实际只写出部分 V2 进程方法，且命名空间与返回 API 错误，不能视为交付；检查后明确改派 DSH 补齐该文件及剩余独占产物。审计原始结果保存在 `artifacts/agy-diagnostics/m73-seat-sources-agy-failure.json`。
+
+### M7.3 交付与独立验收
+
+| 执行方 | 实际产物 | 验收状态 |
+|---|---|---|
+| DSH：场景/回放长任务 | `MultiScenarioService.cs` 与 v2 writer/reader/service 四文件 | MCP 调用超时，无结束报告或约定的测试文件；主代理检查已写文件，补齐不存在视图检查，并纳入真实运行/篡改验收 |
+| DSH：席位来源接手 | `MultiSeatSources.cs`、v2 进程方法、`M7SeatSourceChecks.cs`、Python v2 fixture | 调用超时，无结束报告；主代理修正握手进程所有权、席位绑定及检查日志读取时机，独立运行 **9/9** |
+| DSH：调度长任务及缩小后的单文件任务 | 无 `MultiGameRunner.cs` 交付 | 均超时；不计为完成，主代理直接补齐调度器与模型 |
+| AGY / Pro High：仅提交器、非交互 | `MultiRunCommitter.cs`；任务 `f416e0a4-e5ac-4c51-8334-28b931f9b460`，会话 `7b1a4347-e888-40b8-afeb-90da687be1bf` | worker 返回 completed；空命令清单下的一次终端尝试被审计拒绝，未执行。主代理修正两处错误 Observe 调用，实际构建并验证失败时不发布 |
+| 主代理 | 缺失的运行器/模型、`M7RuntimeChecks.cs`、验收注册与文档 | **16/16**：混合来源、三档案视图、超时 wait、双进程树取消、记录/flush 边界、篡改定位、缺尾部恢复及旧版回归 |
+
+所有失败任务停止后才接管其文件，没有并发覆盖另一个写入者。完整 Release 构建 **0 警告 / 0 错误**；五程序 **319/319**（Core 65、Protocol 58、Runtime 177、Cli 6、Architecture 13）。原调研报告与冻结向量保持不变。当前可运行的是双席位库，CLI 会话入口待 M7.4，不能把测试中的人类回调当成已交付的终端界面。
+
+用户同意一次 AGY 交互式沙箱初始化，主代理按许可启动仅执行 `dotnet --version` 的交互窗口；随后用户明确要求未来不再使用交互式 AGY，已保存。最后的非交互 Flash High 精确命令探针仍返回 `denied_actions: escalate_admin`（会话 `a59a7029-8f65-41c5-af76-9b0a84a8b2dd`）；命令授权通过，但 OS 初始化及执行未成功验证。不再次开启交互窗口、修改全局权限或改变账号/网络；本轮构建/测试均由主代理实际完成。
+
+收尾补齐启动前取消时对注入 writer 的释放，并独立重跑完整 Runtime：177/177。构建诊断日志保留在本地忽略目录 `artifacts/agy-diagnostics/dsh-build-logs/`，不作为源码交付；最终验收日志与计数见 `artifacts/agy-diagnostics/m73-runtime-verification.log`、`m73-validation.json`。
+
+## 外部 LLM Agent 主动控制接口（2026-10-04）
+
+用户明确选择：外部 Agent 主动与运行中的游戏交互，游戏端不调用 LLM API。实现持久单人 `serve`、loopback HTTP 与 stdio MCP 工具入口。未改动用户已有的 `tools/bot` 文件，也未修改客户端全局配置。
+
+| 执行者 | 独占文件 | 实际交付与检查 |
+|---|---|---|
+| DSH / ecnu-max | `src/AgentGame.Runtime/External/ExternalGameSession.cs` | 按限定任务交付单文件，未执行编译/测试；主代理检查并修正终局查询缓存、重复释放、释放失败上报、输入缓冲区所有权、启动异常资源释放与终局时释放记录文件 |
+| AGY / Gemini Flash High | `tools/game-mcp/server.py` | 非交互 MCP 后台任务 `8d85b9aa-10a3-4d31-b0e5-5488959cef7d` 完成；conversation `bcf77c27-96c1-45c3-b5ff-ce6a174164b3`，`command_audit=[]`，没有终端操作或交互窗口；主代理修正错误方向枚举、初始化守卫、null 方向参数、非有限数/非法 Unicode 与 HTTP 错误资源释放 |
+| 主代理 | HTTP 服务、CLI/FrameworkReference、验收与说明 | Kestrel 只绑定 IPv4 loopback；原记录/Observer/核验链路；新增 10 项 Runtime 会话检查、10 项真实 HTTP/MCP 检查；统一脚本接入并修正原有 `play` 无参数检查的过时期待 |
+| DSH / ecnu-max（只读复核） | 无文件写入 | 复核提交边界、并发与关闭；指出缺少“终局后 footer/释放失败”覆盖。保留已提交规则结果与会话执行错误分别报告的语义，并追加该故障检查与说明；没有按建议丢弃已提交的成功结果 |
+
+主代理独立 Release 构建：**0 警告 / 0 错误**。完整统一脚本通过：五程序当时 **328/328**（含最初 9 项外部会话检查）、真实 HTTP/MCP **10/10**、额外 PowerShell CLI **30/30**。随后只追加终局故障检查，重新构建并独立运行外部会话 **10/10**；当前五程序检查总数 **329**（Runtime 187）。生产代码与前述完整回归一致，无需重复完整种子/进程回归。日志：`artifacts/agy-diagnostics/external-control-verification.log`，聚合记录：`external-control-validation.json`。
+
+真实 HTTP 客户端与独立 MCP 客户端分别完成 13 回合通关，服务保持运行时记录可 `verify`；覆盖局部视野、无动作等待、客户端退出/重新连接、竞争/过期拒绝、非法动作、协议初始化、传输失败、取消与权威写入失败。原研究报告 SHA256 保持 `FE4C9932C1E44A786AF0597C69436706545706704E42126441470CA10772F73C`；原 Core 和 agent/1 协议源/冻结向量未改动。使用方式见 [external-agent-control.md](external-agent-control.md)。多人外部控制入口与 M7.4 多人 CLI 仍待实现，终端实际屏幕观感未进行人工验收。
+
+### 推送前验收（2026-10-05）
+
+完整执行 `scripts/verify.ps1`：Release 构建 **0 警告 / 0 错误**；五程序 **329/329**（Core 65、Protocol 58、Runtime 187、Cli 6、Architecture 13）、真实 HTTP/MCP **10/10**、额外 PowerShell CLI **30/30** 全部通过，共 369 项。日志留在本地忽略目录 `artifacts/agy-diagnostics/push-verification-2026-10-05.log`。本次阶段提交涵盖多人 Observer/Runtime/回放与单人外部控制；独立的 `tools/bot/agent.js`、`tools/bot/bridge.js` 保留在本地。整理了 CLI 帮助中过时的阶段标识和多人文档中历史验收计数的措辞。多人 CLI M7.4、Linux 对照和终端人工观感验收仍保持待办。

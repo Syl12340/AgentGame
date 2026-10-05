@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><AssemblyName>agent-game</AssemblyName></PropertyGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../AgentGame.Runtime/AgentGame.Runtime.csproj" />
     <ProjectReference Include="../AgentGame.Protocol/AgentGame.Protocol.csproj" />
   </ItemGroup>

@@ -12,10 +12,13 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "$project contract checks failed." }
     }
     $cliDll = Join-Path $workspaceRoot 'src/AgentGame.Cli/bin/Release/net10.0/agent-game.dll'
+    $externalPython = if ([string]::IsNullOrWhiteSpace($env:AGENT_GAME_PYTHON)) { 'python' } else { $env:AGENT_GAME_PYTHON }
+    & $externalPython (Join-Path $workspaceRoot 'tests/external_game_checks.py')
+    if ($LASTEXITCODE -ne 0) { throw 'External HTTP/MCP checks failed.' }
     $cases = @(
         @{Arguments=@('--help');Code=0;Expected='Usage:';Error=$false},
         @{Arguments=@('--version');Code=0;Expected='0.1.0-dev';Error=$false},
-        @{Arguments=@('play');Code=2;Expected='not implemented';Error=$true},
+        @{Arguments=@('play');Code=2;Expected='play requires --scenario';Error=$true},
         @{Arguments=@('unknown-command');Code=2;Expected='Unknown';Error=$true}
     )
     foreach ($case in $cases) {

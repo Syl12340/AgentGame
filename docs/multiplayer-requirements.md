@@ -1,6 +1,6 @@
 # 多玩家游戏需求研究（新阶段提案）
 
-状态：**需求研究；其中 M7.1（Core 多席位 + `core-state/2`）已实现并通过验收**（见 [milestones/m7.md](milestones/m7.md)），M7.2–M7.4 尚未开始。日期：2026-10-04。本文回答一个新阶段需求：**多玩家游戏——每个玩家可以选择接入游戏，无论他是人类玩家还是另一个不同的 Agent**。
+状态：**M7.1–M7.3 的 Core、协议、每视图 Observer 与双席位 Runtime 已实现并验收**（见 [milestones/m7.md](milestones/m7.md)）；CLI 会话清单及终端接入待 M7.4。日期：2026-10-04。本文回答一个新阶段需求：**多玩家游戏——每个玩家可以选择接入游戏，无论他是人类玩家还是另一个不同的 Agent**。
 
 依据：冻结报告 [agent_game_research_2026-10-02.md](../agent_game_research_2026-10-02.md) 第 15.8 节（OpenSpiel/PettingZoo 的 State/Observation 分离、AEC 顺序行动与 Parallel 同时行动、API 合规测试）、第 7 节（单一逻辑属主、外部调度多局面）、第 9/10 节（超时与 Observer 信息边界），以及 [项目实施计划](project-plan.md) 第 2 节把"多 Agent"放在"后续按需"桶、并要求"范围变化必须写明对规则、协议、记录与验收的影响"。
 
